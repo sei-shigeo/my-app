@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from '../../lib/components/button.svelte';
-	import { addEmployee } from './data.remote';
+	import { addEmployee } from '../../lib/api/employees.remote';
 </script>
 
 <form {...addEmployee} class="flex flex-col gap-2" >

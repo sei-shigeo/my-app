@@ -1,45 +1,53 @@
-import { pgTable, serial, text, integer, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, integer, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // 従業員テーブル
 export const employees = pgTable('employees', {
 	id: serial('id').primaryKey(),
-	name: text('name').notNull(),
-	email: text('email').notNull().unique(),
-	phone: text('phone').notNull()
+	name: varchar('name').notNull(),
+	email: varchar('email').notNull().unique(),
+	phone: varchar('phone').notNull()
 });
 
 // 顧客テーブル
 export const customers = pgTable('customers', {
 	id: serial('id').primaryKey(),
-	name: text('name').notNull(),
-	email: text('email').notNull().unique(),
-	phone: text('phone').notNull()
+	name: varchar('name').notNull(),
+	email: varchar('email').notNull().unique(),
+	phone: varchar('phone').notNull()
 });
 
 // 車両テーブル
 export const vehicles = pgTable('vehicles', {
 	id: serial('id').primaryKey(),
-	name: text('name').notNull(),
-	numberPlate: text('number_plate').notNull().unique()
+	name: varchar('name').notNull(),
+	numberPlate: varchar('number_plate').notNull().unique()
 });
 
 // 商品テーブル
 export const products = pgTable('products', {
 	id: serial('id').primaryKey(),
-	name: text('name').notNull()
+	name: varchar('name').notNull()
 });
 
 // 受注テーブル
 export const orders = pgTable('orders', {
 	id: serial('id').primaryKey(),
 	customerId: integer('customer_id').references(() => customers.id),
-	product: text('product').notNull(),
+	productId: integer('product_id').references(() => products.id),
 	quantity: integer('quantity').notNull().default(1),
-	startLocation: text('start_location').notNull(),
-	endLocation: text('end_location').notNull(),
+	startLocation: varchar('start_location').notNull(),
+	endLocation: varchar('end_location').notNull(),
 	startDate: timestamp('start_date').notNull(),
 	endDate: timestamp('end_date').notNull(),
-	status: text('status').notNull()
+	status: boolean('status').notNull().default(false),
+	deletedAt: timestamp('deleted_at'),
+	createdAt: timestamp('created_at')
+		.notNull()
+		.default(sql`now()`),
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.default(sql`now()`)
 });
 
 // 配車テーブル

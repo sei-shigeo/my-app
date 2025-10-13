@@ -7,7 +7,7 @@
 	import Button from '$lib/components/button.svelte';
 	import CreateForm from './employees/createForm.svelte';
 
-	import { deleteEmployee } from '../routes/employees/data.remote';
+	import { deleteEmployee } from '../lib/api/employees.remote';
 
 	let { children } = $props();
 
