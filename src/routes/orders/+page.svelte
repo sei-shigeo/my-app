@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SearchBar from '$lib/components/searchBar.svelte';
 	import Button from '$lib/components/button.svelte';
-	import { getOrders } from '$lib/api/orders.remote';
+	import { getOrders, addOrder } from '$lib/api/orders.remote';
 	import { getProducts } from '$lib/api/products.remote';
 	import { getCustomers } from '$lib/api/customers.remote';
 	import { getEmployees } from '$lib/api/employees.remote';
@@ -19,7 +19,7 @@
 		<!-- 作成フォーム  -->
 		<!-- {#if newFormClose} -->
 		<div class="mb-4">
-			<form class="space-y-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+			<form {...addOrder} class="space-y-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
 				<!-- ヘッダー：ステータス -->
 				<div class="flex items-center gap-4 border-b border-gray-200 pb-3">
 					<h3 class="text-base font-semibold text-gray-800">新規配送依頼</h3>
@@ -28,8 +28,7 @@
 							type="checkbox"
 							name="status"
 							class="peer sr-only"
-							value="false"
-							checked={false}
+							value="true"
 						/>
 						<span
 							class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-700 transition-colors peer-checked:bg-green-100 peer-checked:text-green-700"
@@ -52,7 +51,7 @@
 									class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--person-outline"
 								></span>
 								<select
-									name="customer"
+									name="customerId"
 									class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-8 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 								>
 									<option value="">顧客を選択</option>
@@ -71,7 +70,7 @@
 									class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--package-variant"
 								></span>
 								<select
-									name="product"
+									name="productId"
 									class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-8 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 								>
 									<option value="">商品を選択</option>
@@ -132,7 +131,7 @@
 							>
 								<option value="">車両を選択</option>
 								{#each await getVehicles() as vehicle (vehicle.id)}
-									<option value={vehicle.id}>{vehicle.name}</option>
+									<option value={vehicle.id}>{vehicle.numberPlate}</option>
 								{/each}
 							</select>
 						</div>
@@ -155,6 +154,7 @@
 										type="date"
 										name="startDate"
 										class="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+										value={new Date().toISOString().split('T')[0]}
 									/>
 								</label>
 								<label class="text-sm text-gray-700">
@@ -186,6 +186,7 @@
 										type="date"
 										name="endDate"
 										class="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+										value={new Date().toISOString().split('T')[0]}
 									/>
 								</label>
 
