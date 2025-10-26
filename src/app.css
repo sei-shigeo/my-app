@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 /* @plugin '@tailwindcss/forms'; */
 @plugin '@tailwindcss/typography';
-@plugin "@iconify/tailwind4" {
+@plugin '@iconify/tailwind4' {
 	prefixes: mdi;
-};
-
+}

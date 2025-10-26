@@ -56,3 +56,10 @@ export const addOrder = form(insertOrderSchema, async (data) => {
 	getOrders().refresh();
 	redirect(303, '/orders');
 });
+
+// 注文データを更新
+export const updateOrder = form(insertOrderSchema, async (data) => {
+	await db.update(orders).set(data).where(eq(orders.id, data.id));
+	getOrders().refresh();
+	redirect(303, '/orders');
+});
