@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, integer, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, integer, timestamp, boolean, smallint, check } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 // 従業員テーブル
@@ -36,6 +36,7 @@ export const vehicles = pgTable('vehicles', {
 	shapeId: integer('shape_id').references(() => vehicleShapes.id).notNull().default(1),
 	name: varchar('name').notNull(),
 	numberPlate: varchar('number_plate').notNull().unique(),
+	deletedAt: timestamp('deleted_at'),
 	createdAt: timestamp('created_at')
 		.notNull()
 		.default(sql`now()`),
@@ -80,13 +81,37 @@ export const orders = pgTable('orders', {
 		.default(sql`now()`)
 });
 
-// 配車テーブル
-export const dispatchs = pgTable('dispatchs', {
+// 場所マスター(積地、卸地)
+export const locations = pgTable('locations', {
 	id: serial('id').primaryKey(),
-	orderId: integer('order_id').references(() => orders.id),
-	employeeId: integer('employee_id').references(() => employees.id),
-	vehicleId: integer('vehicle_id').references(() => vehicles.id)
+	name: varchar('name').notNull(),
+	address: varchar('address').notNull(),
+	deletedAt: timestamp('deleted_at'),
+	createdAt: timestamp('created_at')
+		.notNull()
+		.default(sql`now()`),
+	updatedAt: timestamp('updated_at')
+		.notNull()
+		.default(sql`now()`)
 });
+// 配送ルートの各セグメント（積地・卸地の各地点）
+export const orderRouteSegments = pgTable('order_route_segments', {
+	id: serial('id').primaryKey(),
+	orderId: integer('order_id').references(() => orders.id).notNull(),
+	segmentType: smallint('segment_type').notNull().default(0), // 0: 積地, 1: 卸地
+	sequenceNumber: integer('sequence_number').notNull(), // 順番（1番目の積地、2番目の積地など）
+	locationId: integer('location_id').references(() => locations.id), // 場所マスタへの参照
+	datetime: timestamp('datetime').notNull(), // 予定日時
+	employeeId: integer('employee_id').references(() => employees.id), // 運転手（積地の場合）
+	helperEmployeeId: integer('helper_employee_id').references(() => employees.id), // 横乗り運転手
+	vehicleId: integer('vehicle_id').references(() => vehicles.id), // 使用車両
+	notes: varchar('notes'), // メモ
+	deletedAt: timestamp('deleted_at'),
+	createdAt: timestamp('created_at').notNull().default(sql`now()`),
+	updatedAt: timestamp('updated_at').notNull().default(sql`now()`)
+}, (table) => [
+	check('segment_type', sql`${table.segmentType} IN (0, 1)`),
+]);
 
 // 請求テーブル
 export const invoices = pgTable('invoices', {
@@ -100,7 +125,6 @@ export type Customer = typeof customers.$inferSelect;
 export type Vehicle = typeof vehicles.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type Order = typeof orders.$inferSelect;
-export type Dispatch = typeof dispatchs.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
 export type VehicleSize = typeof vehicleSizes.$inferSelect;
 export type VehicleShape = typeof vehicleShapes.$inferSelect;
