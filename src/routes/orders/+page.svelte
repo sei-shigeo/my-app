@@ -5,7 +5,14 @@
 	import { getProducts } from '$lib/api/products.remote';
 	import { getCustomers } from '$lib/api/customers.remote';
 	import { getEmployees } from '$lib/api/employees.remote';
-	import { getVehicles } from '$lib/api/vehicles.remote';
+	import {
+		getVehicles,
+		getVehiclesBySizeAndShape,
+		getVehicleShapes,
+		getVehicleSizes
+	} from '$lib/api/vehicles.remote';
+	import InputSelect from './inputSelect.svelte';
+	import InputNumber from './inputNumber.svelte';
 
 	let newFormClose = $state(true);
 	let updateFormClose = $state(false);
@@ -21,6 +28,8 @@
 
 	// テスト用
 	let productCategoryId = $state('');
+
+	// 車両
 	let vehicleSizeId = $state('');
 	let vehicleShapeId = $state('');
 
@@ -35,32 +44,6 @@
 		{ id: 1, name: 'スポット', quantityType: '車' },
 		{ id: 2, name: '定期便', quantityType: '便' },
 		{ id: 3, name: '常用', quantityType: '車' }
-	]);
-
-	// 車両の種類(大きさ)
-	type VehicleSize = {
-		id: number;
-		size: string;
-	};
-
-	let vehicleSizes = $state<VehicleSize[]>([
-		{ id: 1, size: '小型車' },
-		{ id: 2, size: '中型車' },
-		{ id: 3, size: '大型車' },
-		{ id: 4, size: 'トラクター' }
-	]);
-
-	// 車両の形状
-	type VehicleShape = {
-		id: number;
-		shape: string;
-	};
-
-	let vehicleShapes = $state<VehicleShape[]>([
-		{ id: 1, shape: '低床ウィング' },
-		{ id: 2, shape: '高床幌' },
-		{ id: 3, shape: '低床平ボデ' },
-		{ id: 4, shape: '高床平ボデ' }
 	]);
 </script>
 
@@ -121,101 +104,40 @@
 
 								<!-- 顧客＆荷物 セクション -->
 								<div class="grid grid-cols-6 gap-2">
-									<label class="text-sm text-gray-700">
-										<span class="mb-1 block font-medium">顧客</span>
-										<div class="relative">
-											<span
-												class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--person-outline"
-											></span>
-											<select
-												name="customerId"
-												class="w-full rounded-md border border-gray-300 bg-white px-8 py-2 text-sm focus:border-blue-500 focus:outline-none"
-											>
-												<option value="">顧客を選択</option>
-												{#each await getCustomers() as customer (customer.id)}
-													<option value={customer.id}>{customer.name}</option>
-												{/each}
-											</select>
-										</div>
-									</label>
+									<InputSelect label="顧客" name="customerId" icon="mdi--person-outline">
+										{#each await getCustomers() as customer (customer.id)}
+											<option value={customer.id}>{customer.name}</option>
+										{/each}
+									</InputSelect>
+
 									<!-- 商品はカテゴリ選択 -->
-									<label class="text-sm text-gray-700">
-										<span class="mb-1 block font-medium">商品カテゴリ</span>
-										<div class="relative">
-											<span
-												class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--package-variant"
-											></span>
-											<select
-												name="productCategoryId"
-												class="w-full rounded-md border border-gray-300 bg-white px-8 py-2 text-sm focus:border-blue-500 focus:outline-none"
-												bind:value={productCategoryId}
-											>
-												<option value="">カテゴリを選択</option>
-												{#each categories as category (category.id)}
-													<option value={String(category.id)}>{category.name}</option>
-												{/each}
-											</select>
-										</div>
-									</label>
+									<InputSelect
+										label="商品カテゴリ"
+										name="productCategoryId"
+										icon="mdi--package-variant"
+										bind:value={productCategoryId}
+									>
+										{#each categories as category (category.id)}
+											<option value={String(category.id)}>{category.name}</option>
+										{/each}
+									</InputSelect>
 
 									<!-- 商品選択 -->
-									<label class="text-sm text-gray-700">
-										<span class="mb-1 block font-medium">商品</span>
-										<div class="relative">
-											<span
-												class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--package-variant"
-											></span>
-											<select
-												name="productId"
-												class="w-full rounded-md border border-gray-300 bg-white px-8 py-2 text-sm focus:border-blue-500 focus:outline-none"
-											>
-												<option value="">商品を選択</option>
-												{#each await getProducts() as product (product.id)}
-													<option value={product.id}>{product.name}</option>
-												{/each}
-											</select>
-										</div>
-									</label>
+									<InputSelect label="商品" name="productId" icon="mdi--package-variant">
+										{#each await getProducts() as product (product.id)}
+											<option value={product.id}>{product.name}</option>
+										{/each}
+									</InputSelect>
 
 									<!-- 数量 -->
-									<label class="text-sm text-gray-700">
-										<span class="mb-1 block font-medium"
-											>数量（{productCategoryId
-												? categories.find((category) => category.id === Number(productCategoryId))
-														?.quantityType
-												: '車'}）</span
-										>
-										<div class="relative">
-											<span
-												class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--sort-numeric-variant"
-											></span>
-											<input
-												type="number"
-												name="quantity"
-												class="w-full rounded-md border border-gray-300 bg-white px-8 py-2 text-sm focus:border-blue-500 focus:outline-none"
-												value="1"
-												min="1"
-											/>
-										</div>
-									</label>
+									<InputNumber
+										label={`数量（${productCategoryId ? categories.find((category) => category.id === Number(productCategoryId))?.quantityType : '車'}）`}
+										icon="mdi--sort-numeric-variant"
+										name="quantity"
+									/>
 
 									<!-- 重量 -->
-									<label class="text-sm text-gray-700">
-										<span class="mb-1 block font-medium">重量</span>
-										<div class="relative">
-											<span class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--weight"
-											></span>
-											<input
-												type="number"
-												name="weight"
-												class="w-full rounded-md border border-gray-300 bg-white px-8 py-2 text-sm focus:border-blue-500 focus:outline-none"
-												value="1"
-												min="1"
-											/>
-										</div>
-									</label>
-
-
+									<InputNumber label="重量" icon="mdi--weight" name="weight" />
 								</div>
 
 								<!-- 運転手＆車両 セクション -->
@@ -234,6 +156,13 @@
 											<span>運転手</span>
 										</button>
 										<!-- 運転手セクション -->
+										<!-- <InputSelect
+											label="運転手"
+											name="employee"
+											icon="mdi--person-outline"
+											data={await getEmployees()}
+											bind:value={employeeId}
+										/> -->
 										<div class="relative">
 											<span
 												class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--person-outline"
@@ -279,62 +208,38 @@
 										</div>
 									{/if}
 									<!-- 車両の種類 -->
-									<label class="flex-1 text-sm text-gray-700">
-										<span class="mb-1 block text-xs font-medium">種類</span>
-										<div class="relative">
-											<span
-												class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--car-outline"
-											></span>
-											<select
-												name="vehicleSize"
-												class="w-full rounded-md border border-gray-300 bg-white px-8 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-												bind:value={vehicleSizeId}
-											>
-												<option value="">種類を選択</option>
-												{#each vehicleSizes as vehicleSize (vehicleSize.id)}
-													<option value={vehicleSize.id}>{vehicleSize.size}</option>
-												{/each}
-											</select>
-										</div>
-									</label>
+									<InputSelect
+										label="種類"
+										name="vehicleSize"
+										icon="mdi--car-outline"
+										bind:value={vehicleSizeId}
+									>
+										{#each await getVehicleSizes() as vehicleSize (vehicleSize.id)}
+											<option value={String(vehicleSize.id)}>{vehicleSize.size}</option>
+										{/each}
+									</InputSelect>
 									<!-- 車両の形状 -->
-									<label class="flex-1 text-sm text-gray-700">
-										<span class="mb-1 block text-xs font-medium">形状</span>
-										<div class="relative">
-											<span
-												class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--car-outline"
-											></span>
-											<select
-												name="vehicleShape"
-												class="w-full rounded-md border border-gray-300 bg-white px-8 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-												bind:value={vehicleShapeId}
-											>
-												<option value="">形状を選択</option>
-												{#each vehicleShapes as vehicleShape (vehicleShape.id)}
-													<option value={vehicleShape.id}>{vehicleShape.shape}</option>
-												{/each}
-											</select>
-										</div>
-									</label>
+									<InputSelect
+										label="形状"
+										name="vehicleShape"
+										icon="mdi--car-outline"
+										bind:value={vehicleShapeId}
+									>
+										{#each await getVehicleShapes() as vehicleShape (vehicleShape.id)}
+											<option value={String(vehicleShape.id)}>{vehicleShape.shape}</option>
+										{/each}
+									</InputSelect>
 									<!-- 車両 -->
-									<label class="flex-1 text-sm text-gray-700">
-										<span class="mb-1 block text-xs font-medium">車両</span>
-										<div class="relative">
-											<span
-												class="absolute top-1/2 left-2 iconify -translate-y-1/2 text-gray-400 mdi--car-outline"
-											></span>
-											<select
-												name="vehicle"
-												class="w-full rounded-md border border-gray-300 bg-white px-8 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-												bind:value={vehicleId}
-											>
-												<option value="">車両を選択</option>
-												{#each await getVehicles() as vehicle (vehicle.id)}
-													<option value={vehicle.id}>{vehicle.numberPlate}</option>
-												{/each}
-											</select>
-										</div>
-									</label>
+									<InputSelect
+										label="車両"
+										name="vehicle"
+										icon="mdi--car-outline"
+										bind:value={vehicleId}
+									>
+										{#each await getVehiclesBySizeAndShape( { sizeId: Number(vehicleSizeId) ?? 1, shapeId: Number(vehicleShapeId) ?? 1 } ) as vehicle (vehicle.id)}
+											<option value={String(vehicle.id)}>{vehicle.numberPlate}</option>
+										{/each}
+									</InputSelect>
 									{#if Number(vehicleSizeId) === 4}
 										<!-- 台車 -->
 										<label class="flex-1 text-sm text-gray-700">
@@ -447,7 +352,7 @@
 								<!-- 卸地日時＆卸地 セクション -->
 								<div class="grid gap-2 rounded-md border border-gray-200 bg-green-50 p-4">
 									{#each endLocationIds as id (id)}
-										<div class="grid gap-2 grid-cols-[repeat(6,1fr)_auto_auto]">
+										<div class="grid grid-cols-[repeat(6,1fr)_auto_auto] gap-2">
 											<!-- 運転手 -->
 											<label class="col-span-1 text-sm text-gray-700">
 												<button
@@ -543,7 +448,7 @@
 											</label>
 
 											<!-- 卸地 -->
-											<label class="text-sm text-gray-700 col-span-3">
+											<label class="col-span-3 text-sm text-gray-700">
 												<span class="mb-1 block text-xs font-medium">
 													卸地 {endLocationIds.indexOf(id) + 1}
 												</span>

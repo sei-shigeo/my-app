@@ -12,6 +12,7 @@ const insertOrderSchema = createInsertSchema(orders, {
 	customerId: z.coerce.number(),
 	productId: z.coerce.number(),
 	quantity: z.coerce.number(),
+	weight: z.coerce.number(),
 	startLocation: z.string(),
 	endLocation: z.string(),
 	startDate: z.coerce.date(),
@@ -33,6 +34,7 @@ export const getOrders = query(async () => {
 		.select({
 			id: orders.id,
 			quantity: orders.quantity,
+			weight: orders.weight,
 			startLocation: orders.startLocation,
 			endLocation: orders.endLocation,
 			startDate: orders.startDate,
